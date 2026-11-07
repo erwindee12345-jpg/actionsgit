@@ -13,10 +13,11 @@ jobs:
 
     steps:
       - name: Check PR title
-        env:
-          PR_TITLE_RAW: ${{ toJSON(github.event.pull_request.title) }}
+        shell: bash
         run: |
           PR_TITLE="$(jq -r '.pull_request.title' "$GITHUB_EVENT_PATH")"
+
+          PR_TITLE="$(printf '%s' "$PR_TITLE" | tr -d '\000-\037\177' | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' | head -c 200)"
           if [[ "$PR_TITLE" =~ ^production ]]; then
             echo "PR title starts with 'production'"
           else
